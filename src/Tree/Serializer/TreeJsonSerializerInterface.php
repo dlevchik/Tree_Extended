@@ -2,7 +2,7 @@
 
 namespace BlueM\Tree\Serializer;
 
-use BlueM\Tree;
+use BlueM\TreeJsonSerializableInterface;
 
 /**
  * Interface for classes which offer tree serialization.
@@ -17,5 +17,5 @@ interface TreeJsonSerializerInterface
      *
      * @return mixed
      */
-    public function serialize(Tree $tree);
+    public function serialize(TreeJsonSerializableInterface $tree);
 }

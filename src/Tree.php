@@ -146,7 +146,7 @@ class Tree implements \JsonSerializable
      *
      * @return Node
      */
-    public function getNodeById($id): Node
+    public function getNodeById($id): ?Node
     {
         if (empty($this->nodes[$id])) {
             throw new \InvalidArgumentException("Invalid node primary key $id");
