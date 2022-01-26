@@ -8,7 +8,7 @@ namespace BlueM\Tree;
  * @author  Carsten Bluem <carsten@bluem.net>
  * @license http://www.opensource.org/licenses/bsd-license.php BSD 3-Clause License
  */
-class Node implements NodeInterface
+class Node implements NodeInterface, \JsonSerializable
 {
     /**
      * Associative array, at least having keys "id" and "parent". Other keys may be added as needed.
@@ -32,8 +32,7 @@ class Node implements NodeInterface
     protected $children = [];
 
     /**
-     * @param string|int $id
-     * @param string|int $parent
+     * {@inheritdoc}
      */
     public function __construct($id, $parent, array $properties = [])
     {
@@ -43,28 +42,28 @@ class Node implements NodeInterface
         $this->properties['parent'] = $parent;
     }
 
-    /**
-     * Adds the given node to this node's children.
-     */
-    public function addChild(Node $child): void
+  /**
+   * {@inheritdoc}
+   */
+    public function addChild(NodeInterface $child): void
     {
         $this->children[] = $child;
         $child->parent = $this;
         $child->properties['parent'] = $this->getId();
     }
 
-    /**
-     * Returns previous node in the same level, or NULL if there's no previous node.
-     */
-    public function getPrecedingSibling(): ?Node
+  /**
+   * {@inheritdoc}
+   */
+    public function getPrecedingSibling(): ?NodeInterface
     {
         return $this->getSibling(-1);
     }
 
-    /**
-     * Returns following node in the same level, or NULL if there's no following node.
-     */
-    public function getFollowingSibling(): ?Node
+  /**
+   * {@inheritdoc}
+   */
+    public function getFollowingSibling(): ?NodeInterface
     {
         return $this->getSibling(1);
     }
@@ -72,7 +71,7 @@ class Node implements NodeInterface
     /**
      * Returns the sibling with the given offset from this node, or NULL if there is no such sibling.
      */
-    private function getSibling(int $offset): ?Node
+    private function getSibling(int $offset): ?NodeInterface
     {
         $siblingsAndSelf = $this->parent->getChildren();
         $pos = array_search($this, $siblingsAndSelf, true);
@@ -80,21 +79,17 @@ class Node implements NodeInterface
         return $siblingsAndSelf[$pos + $offset] ?? null;
     }
 
-    /**
-     * Returns siblings of the node.
-     *
-     * @return Node[]
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getSiblings(): array
     {
         return $this->getSiblingsGeneric(false);
     }
 
-    /**
-     * Returns siblings of the node and the node itself.
-     *
-     * @return Node[]
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getSiblingsAndSelf(): array
     {
         return $this->getSiblingsGeneric(true);
@@ -112,41 +107,33 @@ class Node implements NodeInterface
         return $siblings;
     }
 
-    /**
-     * Returns all direct children of this node.
-     *
-     * @return Node[]
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getChildren(): array
     {
         return $this->children;
     }
 
-    /**
-     * Returns the parent node or null, if the node is the root node.
-     */
-    public function getParent(): ?Node
+  /**
+   * {@inheritdoc}
+   */
+    public function getParent(): ?NodeInterface
     {
         return $this->parent ?? null;
     }
 
-    /**
-     * Returns a node's ID.
-     *
-     * @return mixed
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getId()
     {
         return $this->properties['id'];
     }
 
-    /**
-     * Returns a single node property by its name.
-     *
-     * @throws \InvalidArgumentException
-     *
-     * @return mixed
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function get(string $name)
     {
         $lowerName = strtolower($name);
@@ -154,17 +141,13 @@ class Node implements NodeInterface
             return $this->properties[$lowerName];
         }
         throw new \InvalidArgumentException(
-            "Undefined property: $name (Node ID: ".$this->properties['id'].')'
+            "Undefined property: $name (Node ID: " . $this->properties['id'] . ')'
         );
     }
 
-    /**
-     * @param mixed  $args
-     *
-     * @throws \BadFunctionCallException
-     *
-     * @return mixed
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function __call(string $name, $args)
     {
         $lowerName = strtolower($name);
@@ -177,11 +160,9 @@ class Node implements NodeInterface
         throw new \BadFunctionCallException("Invalid method $name() called");
     }
 
-    /**
-     * @throws \RuntimeException
-     *
-     * @return mixed
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function __get(string $name)
     {
         if ('parent' === $name || 'children' === $name) {
@@ -192,10 +173,22 @@ class Node implements NodeInterface
             return $this->properties[$lowerName];
         }
         throw new \RuntimeException(
-            "Undefined property: $name (Node ID: ".$this->properties['id'].')'
+            "Undefined property: $name (Node ID: " . $this->properties['id'] . ')'
         );
     }
 
+  /**
+   * {@inheritdoc}
+   */
+    public function __set(string $name, $value)
+    {
+        $lowerName = strtolower($name);
+        $this->properties[$lowerName] = $value;
+    }
+
+  /**
+   * {@inheritdoc}
+   */
     public function __isset(string $name): bool
     {
         return 'parent' === $name ||
@@ -203,11 +196,9 @@ class Node implements NodeInterface
                array_key_exists(strtolower($name), $this->properties);
     }
 
-    /**
-     * Returns the level of this node in the tree.
-     *
-     * @return int Tree level (1 = top level)
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getLevel(): int
     {
         if (null === $this->parent) {
@@ -217,45 +208,33 @@ class Node implements NodeInterface
         return $this->parent->getLevel() + 1;
     }
 
-    /**
-     * Returns whether or not this node has at least one child node.
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function hasChildren(): bool
     {
         return \count($this->children) > 0;
     }
 
-    /**
-     * Returns number of children this node has.
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function countChildren(): int
     {
         return \count($this->children);
     }
 
-    /**
-     * Returns any node below (children, grandchildren, ...) this node.
-     *
-     * The order is as follows: A, A1, A2, ..., B, B1, B2, ..., where A and B are
-     * 1st-level items in correct order, A1/A2 are children of A in correct order,
-     * and B1/B2 are children of B in correct order. If the node itself is to be
-     * included, it will be the very first item in the array.
-     *
-     * @return Node[]
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getDescendants(): array
     {
         return $this->getDescendantsGeneric(false);
     }
 
-    /**
-     * Returns an array containing this node and all nodes below (children,
-     * grandchildren, ...) it.
-     *
-     * For order of nodes, see comments on getDescendants()
-     *
-     * @return Node[]
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getDescendantsAndSelf(): array
     {
         return $this->getDescendantsGeneric(true);
@@ -277,29 +256,17 @@ class Node implements NodeInterface
         return $descendants;
     }
 
-    /**
-     * Returns any node above (parent, grandparent, ...) this node.
-     *
-     * The array returned from this method will include the root node. If you
-     * do not want the root node, you should do an array_pop() on the array.
-     *
-     * @return Node[] Indexed array of nodes, sorted from the nearest
-     *                one (or self) to the most remote one
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getAncestors(): array
     {
         return $this->getAncestorsGeneric(false);
     }
 
-    /**
-     * Returns an array containing this node and all nodes above (parent, grandparent,
-     * ...) it.
-     *
-     * Note: The array returned from this method will include the root node. If you
-     * do not want the root node, you should do an array_pop() on the array.
-     *
-     * @return Node[] Indexed, sorted array of nodes: self, parent, grandparent, ...
-     */
+  /**
+   * {@inheritdoc}
+   */
     public function getAncestorsAndSelf(): array
     {
         return $this->getAncestorsGeneric(true);
@@ -314,17 +281,18 @@ class Node implements NodeInterface
         return array_merge($includeSelf ? [$this] : [], $this->parent->getAncestorsGeneric(true));
     }
 
+  /**
+   * {@inheritdoc}
+   */
     public function toArray(): array
     {
         return $this->properties;
     }
 
-    /**
-     * Returns a textual representation of this node.
-     *
-     * @return string The node's ID
-     */
-    public function __toString()
+  /**
+   * {@inheritdoc}
+   */
+    public function __toString(): string
     {
         return (string) $this->properties['id'];
     }

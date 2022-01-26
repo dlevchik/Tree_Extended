@@ -3,6 +3,7 @@
 namespace BlueM\Tree\Serializer;
 
 use BlueM\Tree;
+use BlueM\TreeJsonSerializableInterface;
 
 /**
  * Serializer which creates a hierarchical, depth-first sorted representation of the tree nodes.
@@ -26,7 +27,7 @@ class HierarchicalTreeJsonSerializer implements TreeJsonSerializerInterface
      * @return array Multi-dimensional array of node data arrays, where a node's children are
      *               included in array key "children" of a node
      */
-    public function serialize(Tree $tree): array
+    public function serialize(TreeJsonSerializableInterface $tree): array
     {
         $data = [];
         foreach ($tree->getRootNodes() as $node) {

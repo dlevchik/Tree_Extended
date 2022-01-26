@@ -2,7 +2,7 @@
 
 namespace BlueM\Tree\Serializer;
 
-use BlueM\Tree;
+use BlueM\TreeJsonSerializableInterface;
 
 /**
  * Serializer which creates a flat, depth-first sorted representation of the tree nodes,
@@ -13,7 +13,11 @@ use BlueM\Tree;
  */
 class FlatTreeJsonSerializer implements TreeJsonSerializerInterface
 {
-    public function serialize(Tree $tree): array
+
+  /**
+   * {@inheritdoc}
+   */
+    public function serialize(TreeJsonSerializableInterface $tree): array
     {
         return $tree->getNodes();
     }
