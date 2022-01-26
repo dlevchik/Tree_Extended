@@ -1,3 +1,18 @@
+Fork of BlueM\Tree
+========
+This is a fork of an [original library](https://github.com/BlueM/Tree) created by BlueM. I needed a PHP library in order to work with tree data structure and convert it later into default PHP arrays and back. BlueM's library fits the best. Unfortunately, original library were read-only, so I decided to extend it a little.
+
+Extensions:
+ - I've created base classes and Interfaces from original ones for a better code quality.
+ - Added TreeNullable, that don't throw an error if some property isn't defined, just null.
+ - Added TreeWritable that can add new and delete own nodes dynamically.
+
+If you want to help with development, additional functional that haven't been implemented yet can be found via searching for `@todo`.
+
+All rights belong to BlueM. Original README comes after this line.
+===========================================================
+***
+
 Overview
 ========
 This library provides handling of data that is structured hierarchically using parent ID references. A typical example is a table in a relational database where each record’s “parent” field references the primary key of another record. Of course, usage is not limited to data originating from a database, but anything: you supply the data, and the library uses it, regardless of where the data came from and how it was processed.

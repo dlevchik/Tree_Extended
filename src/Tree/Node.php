@@ -20,7 +20,7 @@ class Node implements NodeInterface, \JsonSerializable
     /**
      * Reference to the parent node, in case of the root object: null.
      *
-     * @var Node
+     * @var NodeInterface
      */
     protected $parent;
 
@@ -71,7 +71,7 @@ class Node implements NodeInterface, \JsonSerializable
     /**
      * Returns the sibling with the given offset from this node, or NULL if there is no such sibling.
      */
-    private function getSibling(int $offset): ?NodeInterface
+    protected function getSibling(int $offset): ?NodeInterface
     {
         $siblingsAndSelf = $this->parent->getChildren();
         $pos = array_search($this, $siblingsAndSelf, true);
@@ -165,7 +165,7 @@ class Node implements NodeInterface, \JsonSerializable
    */
     public function __get(string $name)
     {
-        if ('parent' === $name || 'children' === $name) {
+        if (in_array($name, $this->getReservedPropertyNames())) {
             return $this->$name;
         }
         $lowerName = strtolower($name);
@@ -177,11 +177,25 @@ class Node implements NodeInterface, \JsonSerializable
         );
     }
 
+    /**
+     * Get reserved properties names.
+     *
+     * @return string[]
+     */
+    protected function getReservedPropertyNames()
+    {
+        return ['parent', 'children'];
+    }
+
   /**
    * {@inheritdoc}
    */
     public function __set(string $name, $value)
     {
+        if (in_array($name, $this->getReservedPropertyNames())) {
+            $this->$name = $value;
+            return;
+        }
         $lowerName = strtolower($name);
         $this->properties[$lowerName] = $value;
     }

@@ -6,6 +6,7 @@ use BlueM\Tree\Serializer\FlatTreeJsonSerializer;
 use BlueM\Tree\Serializer\TreeJsonSerializerInterface;
 
 // @todo rename jsonSerializer to ordinary serializer
+// @todo make serializer work with every TreeInterface as every node has toArray
 class TreeJsonSerializableBase extends TreeBase implements TreeJsonSerializableInterface
 {
   /**

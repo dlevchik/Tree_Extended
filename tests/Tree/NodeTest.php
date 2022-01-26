@@ -521,4 +521,33 @@ class NodeTest extends TestCase
             $node->getDescendantsAndSelf()
         );
     }
+
+    /**
+     * @test
+     */
+    public function nodeNullableTest()
+    {
+        $node = new NodeNullable(1, null);
+
+        static::assertNull($node->underfinedProperty);
+        static::assertNull($node->underfinedProperty());
+        static::assertNull($node->get('underfinedProperty'));
+    }
+
+    /**
+     * @test
+     */
+    public function aNodeChildCanBeDeleted()
+    {
+        $parent_id = 'parent';
+        $child_id = 'child';
+        $parent = new NodeWritable($parent_id, null);
+        $child = new NodeWritable($child_id, null);
+
+        $parent->addChild($child);
+
+        $parent->deleteChildById($child);
+        static::assertFalse($parent->hasChild($child_id));
+        static::assertNull($child->getParent());
+    }
 }
