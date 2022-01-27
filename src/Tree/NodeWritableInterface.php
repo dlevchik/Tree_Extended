@@ -35,11 +35,15 @@ interface NodeWritableInterface extends NodeInterface
 
     /**
      * Deletes only node children, and their children.
+     *
+     * @todo return deleted nodes
      */
     public function deleteDescendants(): void;
 
     /**
      * Deletes this node and transforms its children to deleted node parent.
+     *
+     * @todo return deleted nodes
      */
     public function deleteButSaveDescendants(): void;
 
@@ -52,7 +56,7 @@ interface NodeWritableInterface extends NodeInterface
      *
      * @param string $id
      */
-    public function deleteChildById(string $id): void;
+    public function unsetChildById(string $id): void;
 
     /**
      * Checks if this node has given child id in list.
@@ -63,17 +67,11 @@ interface NodeWritableInterface extends NodeInterface
     public function hasChild(string $id): bool;
 
     /**
-     * Unsets node parent.
-     */
-    public function unsetParent(): void;
-
-    /**
-     * Sets node parent. Note that this method won't change node position inside the tree.
-     * If null given it unsets parent.
+     * Unsets node parent. This does not change tree nodes list.
      *
      * This method is mostly used by other node methods, so it's not recommended using it manually.
      *
      * @helper
      */
-    public function setParent(NodeInterface $node): void;
+    public function unsetParent(): void;
 }

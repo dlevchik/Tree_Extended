@@ -1,0 +1,31 @@
+<?php
+
+namespace BlueM\Tree\Serializer;
+
+use BlueM\TreeJsonSerializableInterface;
+
+class DefaultArraySerializer extends FlatTreeJsonSerializer
+{
+    /**
+     * {@inheritdoc}
+     */
+    public function serialize(TreeJsonSerializableInterface $tree): array
+    {
+        $nodes = parent::serialize($tree);
+        foreach ($nodes as $key => $node) {
+            $nodes[$key] = $node->toArray();
+        }
+        return $nodes;
+    }
+
+    /**
+     * Static version of serialize function.
+     *
+     * @param TreeJsonSerializableInterface $tree
+     * @return array|mixed
+     */
+    public static function toArray(TreeJsonSerializableInterface $tree)
+    {
+        return (new static())->serialize($tree);
+    }
+}

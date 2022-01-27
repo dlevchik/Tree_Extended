@@ -25,12 +25,12 @@ interface TreeWritableInterface extends TreeInterface
      * @helper
      *
      * @param NodeWritableInterface[] $nodes
-     * @return array
+     * @return NodeWritableInterface[]
      *
      * @throws \InvalidArgumentException
      *  When trying to delete root node OR node don't attached to this tree.
      */
-    public function deleteNodes(array $nodes): array;
+    public function unsetNodes(array $nodes): array;
 
     /**
      * Add node to tree nodes list. While createNode() used only for node initialization, this method is aimed to add

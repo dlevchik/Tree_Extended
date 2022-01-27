@@ -10,7 +10,18 @@ class TreeWritable extends TreeNullable implements TreeWritableInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteNodes(array $nodes): array
+    protected function build($data): void
+    {
+        parent::build($data);
+        foreach ($this->nodes as $node) {
+            $node->setTree($this);
+        }
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function unsetNodes(array $nodes): array
     {
         foreach ($nodes as $node) {
             if ($node->getTree() !== $this) {
@@ -22,7 +33,7 @@ class TreeWritable extends TreeNullable implements TreeWritableInterface
 
             $node_parent = $node->getParent();
             if (!is_null($node_parent)) {
-                $node_parent->deleteChildById($node->id());
+                $node_parent->unsetChildById($node->getId());
             }
 
             unset($this->nodes[$node->getId()]);
@@ -37,17 +48,17 @@ class TreeWritable extends TreeNullable implements TreeWritableInterface
      */
     public function addNode(NodeInterface $node): void
     {
-        if ($this->isNodeExistsById($node->id())) {
+        if ($this->isNodeExistsById($node->getId())) {
             throw new \RuntimeException('Given node id is already in use. You need to delete it before adding a new one.');
         }
         $node->setTree($this);
 
         $node_parent = $node->getParent();
-        if (!is_null($node_parent) && !$node_parent->hasChild($node->id())) {
+        if (!is_null($node_parent) && !$node_parent->hasChild($node->getId())) {
             $node_parent->addChild($node);
         }
 
-        $this->nodes[$node->id()] = $node;
+        $this->nodes[$node->getId()] = $node;
 
         if ($node->hasChildren()) {
             foreach ($node->getChildren() as $child) {

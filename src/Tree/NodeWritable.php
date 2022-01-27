@@ -6,6 +6,8 @@ use BlueM\TreeWritableInterface;
 
 class NodeWritable extends NodeNullable implements NodeWritableInterface
 {
+    private const UNATACHED_MESSAGE = 'You need to attach node to a tree before deleting it.';
+
     /**
      * @var TreeWritableInterface
      */
@@ -17,6 +19,17 @@ class NodeWritable extends NodeNullable implements NodeWritableInterface
     protected function getReservedPropertyNames()
     {
         return array_merge(parent::getReservedPropertyNames(), ['tree']);
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getParent(): ?NodeInterface
+    {
+        if (!isset($this->parent) && !is_null($this->getTree())) {
+            $this->parent = $this->getTree()->getNodeById($this->properties['parent']);
+        }
+        return parent::getParent();
     }
 
     /**
@@ -62,11 +75,11 @@ class NodeWritable extends NodeNullable implements NodeWritableInterface
     {
         $tree = $this->getTree();
         if (is_null($tree)) {
-            throw new \RuntimeException('You need to attach node to a tree before deleting it.');
+            throw new \RuntimeException(self::UNATACHED_MESSAGE);
         }
 
         $nodes_to_delete = $this->getDescendantsAndSelf();
-        return $tree->deleteNodes($nodes_to_delete);
+        return $tree->unsetNodes($nodes_to_delete);
     }
 
     /**
@@ -76,11 +89,11 @@ class NodeWritable extends NodeNullable implements NodeWritableInterface
     {
         $tree = $this->getTree();
         if (is_null($tree)) {
-            throw new \RuntimeException('You need to attach node to a tree before deleting it.');
+            throw new \RuntimeException(self::UNATACHED_MESSAGE);
         }
 
         $nodes_to_delete = $this->getDescendants();
-        $tree->deleteNodes($nodes_to_delete);
+        $tree->unsetNodes($nodes_to_delete);
     }
 
     /**
@@ -90,15 +103,15 @@ class NodeWritable extends NodeNullable implements NodeWritableInterface
     {
         $tree = $this->getTree();
         if (is_null($tree)) {
-            throw new \RuntimeException('You need to attach node to a tree before deleting it.');
+            throw new \RuntimeException(self::UNATACHED_MESSAGE);
         }
 
         $descendants = $this->getDescendants();
         $parent = $this->getParent();
 
-        $tree->deleteNodes(array_merge($descendants, $this));
+        $tree->unsetNodes(array_merge($descendants, [$this]));
         foreach ($descendants as $descendant) {
-            $descendant->setParent($parent);
+            $descendant->parent = $parent;
             $tree->addNode($descendant);
         }
     }
@@ -106,7 +119,7 @@ class NodeWritable extends NodeNullable implements NodeWritableInterface
     /**
      * {@inheritdoc}
      */
-    public function deleteChildById(string $id): void
+    public function unsetChildById(string $id): void
     {
         $child = $this->children[$id] ?? null;
         if (!is_null($child)) {
@@ -130,18 +143,5 @@ class NodeWritable extends NodeNullable implements NodeWritableInterface
     public function unsetParent(): void
     {
         unset($this->parent, $this->properties['parent']);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function setParent(NodeInterface $node = null): void
-    {
-        if (is_null($node)) {
-            $this->unsetParent();
-            return;
-        }
-        $this->parent = $node;
-        $this->properties['parent'] = $node->getId();
     }
 }

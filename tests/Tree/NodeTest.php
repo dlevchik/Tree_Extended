@@ -546,8 +546,40 @@ class NodeTest extends TestCase
 
         $parent->addChild($child);
 
-        $parent->deleteChildById($child);
+        static::assertTrue($parent->hasChild($child_id));
+
+        $parent->unsetChildById($child);
+        static::assertNull($child->getParent());
+
         static::assertFalse($parent->hasChild($child_id));
+    }
+
+    /**
+     * @test
+     */
+    public function deleteWithoutTree()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectErrorMessage('You need to attach node to a tree before deleting it.');
+
+        $node = new NodeWritable('test', null);
+        $node->delete();
+    }
+
+    /**
+     * @test
+     */
+    public function unsetParentTest()
+    {
+        $parent_id = 'parent';
+        $child_id = 'child';
+        $parent = new NodeWritable($parent_id, null);
+        $child = new NodeWritable($child_id, null);
+
+        $parent->addChild($child);
+        static::assertEquals($parent, $child->getParent());
+
+        $child->unsetParent();
         static::assertNull($child->getParent());
     }
 }

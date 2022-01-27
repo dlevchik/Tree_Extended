@@ -9,6 +9,7 @@ namespace BlueM;
 use BlueM\Tree\Exception\InvalidDatatypeException;
 use BlueM\Tree\Exception\InvalidParentException;
 use BlueM\Tree\Node;
+use BlueM\Tree\NodeWritable;
 use BlueM\Tree\Serializer\HierarchicalTreeJsonSerializer;
 use PHPUnit\Framework\TestCase;
 
@@ -192,9 +193,9 @@ class TreeTest extends TestCase
      */
     public function aTreeCanBeCreatedFromAnArrayOfObjectsImplementingIterator()
     {
-        function makeIterableInstance($data) {
-            return new class($data) implements \Iterator {
-
+        function makeIterableInstance($data)
+        {
+            return new class ($data) implements \Iterator {
                 private $data;
                 private $pos = 0;
                 private $keys;
@@ -421,8 +422,8 @@ EXPECTED;
     public function aCustomBuildWarningCallbackCanBeSpecifiedWhichIsCalledWithNodeAndParentIdAsArgument()
     {
         $invocationCount = 0;
-        $buildwarningcallback = function(Node $node, $parentId) use (&$invocationCount) {
-            $invocationCount ++;
+        $buildwarningcallback = function (Node $node, $parentId) use (&$invocationCount) {
+            $invocationCount++;
             static::assertSame(2, $node->getId());
             static::assertSame('', $parentId);
         };
@@ -497,6 +498,142 @@ EXPECTED;
             static::assertInstanceOf(Node::class, $nodes[$i]);
             static::assertSame($expectedOrder[$i], $nodes[$i]->getId());
         }
+    }
+
+    /**
+     * @test
+     */
+    public function treeAddNodeTest()
+    {
+        $data = self::dataWithStringKeys(true, 'id_node', 'id_parent');
+
+        $tree = new TreeWritable($data, ['rootId' => '', 'id' => 'id_node', 'parent' => 'id_parent']);
+
+        $node_id = 'high-school';
+        $parent_id = 'school';
+        $node = new NodeWritable($node_id, $parent_id);
+
+        $tree->addNode($node);
+
+        static::assertTrue($tree->isNodeExistsById($node_id));
+        static::assertEquals($node, $tree->getNodeById($node_id));
+
+        $node_parent = $tree->getNodeById($parent_id);
+
+        static::assertInstanceOf(NodeWritable::class, $node_parent);
+        static::assertEquals($node_parent, $node->getParent());
+        static::assertTrue($node_parent->hasChild($node_id));
+    }
+
+    /**
+     * @test
+     */
+    public function nodeAddChildToTreeTest()
+    {
+        $data = self::dataWithStringKeys(true, 'id_node', 'id_parent');
+
+        $tree = new TreeWritable($data, ['rootId' => '', 'id' => 'id_node', 'parent' => 'id_parent']);
+
+        $node_id = 'high-school';
+        $parent_id = 'school';
+        $node = $tree->createNode($node_id, $parent_id, []);
+        static::assertInstanceOf(NodeWritable::class, $node);
+
+        $parent = $tree->getNodeById($parent_id);
+
+        $parent->addChild($node);
+
+        static::assertEquals($tree, $parent->getTree());
+        static::assertEquals($tree, $node->getTree());
+        static::assertEquals($parent, $node->getParent());
+        static::assertTrue($tree->isNodeExistsById($node_id));
+        static::assertTrue($parent->hasChild($node_id));
+    }
+
+    /**
+     * @test
+     */
+    public function treeNodeDeleteTest()
+    {
+        $data = self::dataWithStringKeys(true, 'id_node', 'id_parent');
+
+        $tree = new TreeWritable($data, ['rootId' => '', 'id' => 'id_node', 'parent' => 'id_parent']);
+
+        $node_id = 'high-school';
+        $parent_id = 'school';
+        $node = $tree->createNode($node_id, $parent_id, []);
+        $parent = $tree->getNodeById($parent_id);
+        $higher_parent = $parent->getParent();
+        $parent->addChild($node);
+
+        $parent->delete();
+
+        static::assertNull($parent->getTree());
+        static::assertNull($parent->getParent());
+        static::assertFalse($higher_parent->hasChild($parent_id));
+        static::assertFalse($tree->isNodeExistsById($parent_id));
+
+        static::assertFalse($tree->isNodeExistsById($node_id));
+        static::assertNull($node->getTree());
+        static::assertNull($node->getParent());
+    }
+
+    /**
+     * @test
+     */
+    public function treeNodeDeleteDescendantsTest()
+    {
+        $data = self::dataWithStringKeys(true, 'id_node', 'id_parent');
+
+        $tree = new TreeWritable($data, ['rootId' => '', 'id' => 'id_node', 'parent' => 'id_parent']);
+
+        $node_id = 'high-school';
+        $parent_id = 'school';
+        $node = $tree->createNode($node_id, $parent_id, []);
+        $parent = $tree->getNodeById($parent_id);
+        $higher_parent = $parent->getParent();
+        $parent->addChild($node);
+
+        $parent->deleteDescendants();
+
+        static::assertEquals($tree, $parent->getTree());
+        static::assertEquals($higher_parent, $parent->getParent());
+        static::assertTrue($higher_parent->hasChild($parent_id));
+        static::assertTrue($tree->isNodeExistsById($parent_id));
+
+        static::assertFalse($tree->isNodeExistsById($node_id));
+        static::assertNull($node->getTree());
+        static::assertNull($node->getParent());
+    }
+
+    /**
+     * @test
+     */
+    public function treeNodeDeleteButSaveDescendantsTest()
+    {
+        $data = self::dataWithStringKeys(true, 'id_node', 'id_parent');
+
+        $tree = new TreeWritable($data, ['rootId' => '', 'id' => 'id_node', 'parent' => 'id_parent']);
+
+        $node_id = 'high-school';
+        $parent_id = 'school';
+        $node = $tree->createNode($node_id, $parent_id, []);
+        $parent = $tree->getNodeById($parent_id);
+        $higher_parent = $parent->getParent();
+        $parent->addChild($node);
+
+        $parent->deleteButSaveDescendants();
+
+        static::assertNull($parent->getTree());
+        static::assertNull($parent->getParent());
+        static::assertFalse($higher_parent->hasChild($parent_id));
+        static::assertFalse($tree->isNodeExistsById($parent_id));
+
+        static::assertTrue($tree->isNodeExistsById($node_id));
+        static::assertTrue($higher_parent->hasChild($node_id));
+        static::assertTrue($higher_parent->hasChild('primary-school'));
+        static::assertEquals($tree, $node->getTree());
+        static::assertEquals($higher_parent, $node->getParent());
     }
 
     private static function dataWithNumericKeys(): array
