@@ -84,7 +84,6 @@ class DefaultArraySerializerTest extends TestCase
         $tree = self::buildWritableTree();
 
         $serializedData = DefaultArraySerializer::toArray($tree);
-        static::assertSame(self::SERIALIZED_DATA, $serializedData);
 
         $tree_from_serializedData = new TreeWritable($serializedData, ['rootId' => '', 'id' => 'id_node', 'parent' => 'id_parent']);
         static::assertSame($serializedData, DefaultArraySerializer::toArray($tree_from_serializedData));

@@ -84,4 +84,14 @@ interface TreeInterface
    * @param string|int $parent
    */
     public function createNode($id, $parent, array $properties): NodeInterface;
+
+    /**
+     * @return string
+     */
+    public function getIdKey(): string;
+
+    /**
+     * @return string
+     */
+    public function getParentKey(): string;
 }

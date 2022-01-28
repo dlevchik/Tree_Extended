@@ -233,4 +233,20 @@ class TreeBase implements TreeInterface
 
         return $findNested($this->getRootNodes(), $search);
     }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getIdKey(): string
+    {
+        return $this->idKey;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function getParentKey(): string
+    {
+        return $this->parentKey;
+    }
 }
